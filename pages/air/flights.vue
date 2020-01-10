@@ -28,7 +28,6 @@
         ></el-pagination>
       </div>
 
-<<<<<<< HEAD
       <!-- 侧边栏 -->
       <flightsAside />
     </el-row>
@@ -121,85 +120,6 @@ export default {
       this.flightsData.flights = arr;
       // 修改总条数
       this.total = arr.length;
-=======
-            <!-- 侧边栏 -->
-            <flightsAside/>
-        </el-row>
-    </section>
-</template>
-
-<script>
-import FlightsListHead from "@/components/air/flightsListHead.vue"
-import FlightsItem from "@/components/air/flightsItem.vue"
-import FlightsFilters from "@/components/air/flightsFilters.vue"
-import flightsAside from "@/components/air/flightsAside.vue"
-
-export default {
-    data(){
-        return {
-            // 航班总数据 { info, flights, total, options }
-            flightsData: {
-                info: {},
-                options: {},
-                flights: []
-            },
-            // 缓存的变量，当该变量一旦被赋值之后不会被修改
-            cacheFlightsData: {
-                info: {},
-                options: {},
-                flights: []
-            },
-
-            // 当前的页面
-            pageIndex: 1,
-            // 当然的条数
-            pageSize: 5,
-            // 总条数
-            total: 0,
-            // 存放切割出来数据
-            // dataList: [] 
-        }
-    },
-    components: {
-        FlightsListHead,
-        FlightsItem,
-        FlightsFilters,
-        flightsAside
-    },
-
-    watch: {
-        $route(){
-            this.$axios({
-                url: "/airs",
-                params: this.$route.query
-            }).then(res => {
-                // 赋值给总数据，但是该变量中的flights在过滤时候会被修改
-                this.flightsData = res.data;
-                // 这个是缓存的变量，一旦赋值之后不能被改
-                this.cacheFlightsData = {...res.data};
-
-                // 总条数
-                this.total = this.flightsData.total;
-
-                // 分页初始化为1
-                this.pageIndex = 1;
-            })
-        }
-    },
-
-    computed: {
-        // 计算属性监听函数内部引用实例的属性变化，一旦发生了变化，该函数会重新计算，并且返回新的值
-        dataList(){
-            // 请求如果还没完成，返回空数组
-            if(!this.flightsData.flights) return [];
-
-            // 计算分页的数据
-            return this.flightsData.flights.slice(
-                (this.pageIndex - 1) * this.pageSize, 
-                this.pageIndex * this.pageSize
-            );
-        }
->>>>>>> c6fa98609e7e47c68750bc11ed17d3c07ac7f54e
     },
     // 切换分页条数时候触发
     handleSizeChange(value) {

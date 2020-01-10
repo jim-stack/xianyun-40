@@ -1,16 +1,9 @@
 // 保存user下的数据
 export const state = () => ({
-<<<<<<< HEAD
   // name: "某jack"
 
   // 登录后的数据，包含token和user对象
   userInfo: {}
-=======
-    // name: "某jack"
-
-    // 登录后的数据，包含token和user对象
-    userInfo: {}
->>>>>>> c6fa98609e7e47c68750bc11ed17d3c07ac7f54e
 });
 
 // 同步修改state的数据
@@ -47,7 +40,6 @@ export const actions = {
     })
   },
 
-<<<<<<< HEAD
   // 发送手机验证码 
   sendCaptcha(store, data) {
     return this.$axios({
@@ -59,19 +51,6 @@ export const actions = {
       }
     })
   },
-=======
-    // 发送手机验证码 
-    sendCaptcha(store, data){
-        return this.$axios({
-            url: "/captchas",
-            method: 'POST',
-            data: {
-                // 手机号码
-                tel: data
-            }
-        })
-    },
->>>>>>> c6fa98609e7e47c68750bc11ed17d3c07ac7f54e
 
   // 注册的请求
   register(store, data) {

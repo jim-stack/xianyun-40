@@ -184,7 +184,6 @@ export default {
           value: this.form.departCity,
           err_message: "出发城市不能为空"
         },
-<<<<<<< HEAD
         destCity: {
           value: this.form.destCity,
           err_message: "到达城市不能为空"
@@ -194,17 +193,8 @@ export default {
           err_message: "出发日期不能为空"
         }
       };
-      const airs = JSON.parse(localStorage.getItem("airs") || `[]`);
-      airs.push(this.form);
-      localStorage.setItem("airs", JSON.stringify(airs));
-
-      this.$router.push({
-        path: "/air/flights",
-        query: this.form
-      });
       // 验证的变量
       let valid = true;
-
       // 循环判断rules属性的值是否为空
       Object.keys(rules).forEach(key => {
         // 只要valid是false就没有必要再循环了
@@ -217,67 +207,16 @@ export default {
         }
       });
       if (valid === false) return;
-
       // 跳转到机票的列表页
       this.$router.push({
         path: "/air/flights",
         query: this.form
       });
-
       // 保存到store
       this.$store.commit("air/setHistory", this.form);
     }
   },
   mounted() {}
-=======
-
-		// 提交表单是触发
-		handleSubmit() {
-
-            // 自定义校验规则 （通过状态来判断）
-            const  rules = {
-                departCity: {
-                    value: this.form.departCity,
-                    err_message: "出发城市不能为空"
-                },
-                destCity: {
-                    value: this.form.destCity,
-                    err_message: "到达城市不能为空"
-                },
-                departDate: {
-                    value: this.form.departDate,
-                    err_message: "出发日期不能为空"
-                }
-            };
-            // 验证的变量
-            let valid = true;
-
-            // 循环判断rules属性的值是否为空
-            Object.keys(rules).forEach(key => {
-                // 只要valid是false就没有必要再循环了
-                if(valid === false) return;
-                // 如果有一项为空，把valid设置为false
-                if(rules[key].value === ""){
-                    this.$message.error(rules[key].err_message);
-                    valid = false;
-                    return;
-                }
-            })
-
-            if(valid === false) return;
-
-			// 跳转到机票的列表页
-			this.$router.push({
-				path: "/air/flights",
-				query: this.form
-			});
-
-			// 保存到store
-			this.$store.commit("air/setHistory", this.form);
-		}
-	},
-	mounted() {}
->>>>>>> c6fa98609e7e47c68750bc11ed17d3c07ac7f54e
 };
 </script>
 
