@@ -37,7 +37,7 @@
     </el-row>
     <el-row type="flex" justify="space-between" align="middle" class="info-bar">
       <span>应付总额：</span>
-      <span class="price">￥ {{ $store.state.air.allPrice }}</span>
+      <span class="price">￥ {{ allPrice }}</span>
     </el-row>
   </div>
 </template>
@@ -49,8 +49,13 @@ export default {
     data: {
       type: Object,
       default: {}
+    },
+    allPrice: {
+      type: Number,
+      default: 0
     }
   },
+
   computed: {
     // 相隔时间
     rankTime() {

@@ -31,12 +31,11 @@
     <div class="air-column">
       <h2>保险</h2>
       <div>
-        <!-- 循环渲染保险的数据 -->
         <div class="insurance-item" v-for="(item, index) in data.insurances" :key="index">
           <el-checkbox
-            :label="`${item.type}：￥${item.price}/份×1  最高赔付${item.compensation}`"
+            :label="`${item.type}：￥${item.price}/份×${users.length}  最高赔付${item.compensation}`"
+            @change="handleInsurance(item.id)"
             border
-            @change="handleInsurances(item.id)"
           ></el-checkbox>
         </div>
       </div>
@@ -66,6 +65,7 @@
       </div>
     </div>
     <span>{{allPrice}}</span>
+    <input type="hidden" :value="allPrice" />
   </div>
 </template>
 
@@ -80,114 +80,153 @@ export default {
           id: ""
         }
       ],
-      insurances: [], // 保险id
-      contactName: "",
-      contactPhone: "",
-      captcha: "",
-      invoice: false,
-      seat_xid: "", // 座位的id
-      air: "" // 航班的id
+      insurances: [], // 保险数据
+      contactName: "", // 联系人名字
+      contactPhone: "", // 联系人电话
+      captcha: "000000", // 验证码
+      invoice: false // 发票
     };
   },
   props: {
     // 组件接受父组件传递的机票的数据信息
+
+    // 接收机票信息
     data: {
       type: Object,
-      default() {
-        return {};
-      }
+      default: {}
     }
   },
   computed: {
-    // 计算总价格。总价格展示在侧边栏的组件
+    // 计算总价格
     allPrice() {
+      console.log(123);
       let price = 0;
+      let len = this.users.length;
 
-      if (!this.data.seat_infos.org_settle_price) return;
-      // 机票的单价
-      price += this.data.seat_infos.org_settle_price;
-      // 燃油费
-      price += this.data.airport_tax_audlet;
-      // 保险
-      price += this.insurances.length * 30;
-      // 根据乘机人的数量翻倍
-      price *= this.users.length;
-      // 传递给store
-      this.$store.commit("air/setAllPrice", price);
-      return "";
+      price += this.data.seat_infos.org_settle_price * len;
+
+      this.insurances.forEach(v => {
+        price += this.data.insurances[v - 1].price * len;
+      });
+
+      price += this.data.airport_tax_audlet * len;
+
+      // 触发设置总金额事件
+      this.$emit("setAllPrice", price);
+
+      return price;
     }
   },
   methods: {
     // 添加乘机人
     handleAddUsers() {
-      this.users.push({
-        username: "",
-        id: ""
-      });
+      this.users = [
+        ...this.users,
+        {
+          username: "",
+          id: ""
+        }
+      ];
     },
 
     // 移除乘机人
     handleDeleteUser(index) {
       this.users.splice(index, 1);
     },
-    // 处理保险id
-    handleInsurances(id) {
-      // 判断数组中有没有该id
-      const index = this.insurances.indexOf(id);
-      // 有的话删除掉该id
-      if (index > -1) {
-        this.insurances.splice(index, 1);
+
+    // 选择保险
+    handleInsurance(id) {
+      // 存在则去除
+      if (this.insurances.indexOf(id) > -1) {
+        let arr = this.insurances.slice(0);
+        arr.splice(this.insurances.indexOf(id), 1);
+        this.insurances = arr;
       } else {
-        // 没有的话添加
-        this.insurances.push(id);
+        // 不存在添加到insurances
+        this.insurances = [...new Set([...this.insurances, id])];
       }
     },
 
     // 发送手机验证码
     handleSendCaptcha() {
-      // 手机号码不能为空
       if (!this.contactPhone) {
-        this.$message.error("手机号码不能为空");
+        this.$confirm("手机号码不能为空", "提示", {
+          confirmButtonText: "确定",
+          showCancelButton: false,
+          type: "warning"
+        });
         return;
       }
-      // 调用actions的发送手机验证码的接口
-      this.$store.dispatch("user/sendCaptcha", this.contactPhone).then(res => {
-        this.$message.success("手机验证码发送成功：000000");
+
+      if (this.contactPhone.length !== 11) {
+        this.$confirm("手机号码格式错误", "提示", {
+          confirmButtonText: "确定",
+          showCancelButton: false,
+          type: "warning"
+        });
+        return;
+      }
+
+      this.$axios({
+        url: `/captchas`,
+        method: "POST",
+        data: {
+          tel: this.contactPhone
+        }
+      }).then(res => {
+        const { code } = res.data;
+        this.$confirm(`模拟手机验证码为：${code}`, "提示", {
+          confirmButtonText: "确定",
+          showCancelButton: false,
+          type: "warning"
+        });
       });
     },
     // 提交订单
     handleSubmit() {
-      // 提交给创建订单接口的参数
-      const data = {
+      const orderData = {
         users: this.users,
-        insurances: this.insurances, // 保险id
+        insurances: this.insurances,
         contactName: this.contactName,
         contactPhone: this.contactPhone,
+        invoice: this.invoice,
         captcha: this.captcha,
-        invoice: false,
-        seat_xid: this.$route.query.seat_xid, // 座位的id
-        air: this.$route.query.id // 航班的id
+        seat_xid: this.data.seat_infos.seat_xid,
+        air: this.data.id
       };
+
+      const {
+        user: { userInfo }
+      } = this.$store.state;
       // 创建订单接口
-      this.$axios({
-        url: "/airorders",
-        method: "POST",
-        headers: {
-          // Bearer是token字符串前面必须要声明的，后面加上空格，再连接上token
-          Authorization: "Bearer " + this.$store.state.user.userInfo.token
-        },
-        data
-      }).then(res => {
-        // 订单的id
-        const { id } = res.data.data;
-        // 跳转到付款页
-        this.$router.push({
-          path: "/air/pay",
-          query: {
-            id
-          }
-        });
+      this.$message({
+        message: "正在生成订单！请稍等",
+        type: "success"
       });
+
+      this.$axios({
+        url: `/airorders`,
+        method: "POST",
+        data: orderData,
+        headers: {
+          Authorization: `Bearer ${userInfo.token || "NO TOKEN"}`
+        }
+      })
+        .then(res => {
+          // 跳转到付款页
+          this.$router.push({
+            path: "/air/pay"
+          });
+        })
+        .catch(err => {
+          const { message } = err.response.data;
+          // 警告提示
+          this.$confirm(message, "提示", {
+            confirmButtonText: "确定",
+            showCancelButton: false,
+            type: "warning"
+          });
+        });
     }
   }
 };
