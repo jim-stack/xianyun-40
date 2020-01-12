@@ -18,17 +18,18 @@ export default {
     return {
       // 机票信息
       infoData: {
-        insurances: [], // 初始化保险数据
-        seat_infos: {}
+        insurances: [],
+        seat_infos: {} // 初始化保险数据
       },
-
       allPrice: 0
     };
   },
+
   components: {
     OrderForm,
     OrderAside
   },
+
   mounted() {
     const { query } = this.$route;
 
@@ -41,6 +42,7 @@ export default {
       this.infoData = res.data;
     });
   },
+
   methods: {
     setAllPrice(price) {
       this.allPrice = price;
