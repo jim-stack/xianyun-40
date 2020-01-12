@@ -23,7 +23,90 @@
 </template>
 
 <script>
-export default {};
+// 生成二维码的包
+import QRCode from "qrcode";
+export default {
+  data() {
+    return {
+      timer: null
+    };
+  },
+
+  methods: {
+    // 检查付款状态
+    async isPay(data) {
+      const { id } = this.$route.query;
+      const {
+        api,
+        user: { userInfo }
+      } = this.$store.state;
+
+      return this.$axios({
+        url: `airorders/checkpay`,
+        method: "POST",
+        data: {
+          id,
+          nonce_str: data.nonce_str,
+          out_trade_no: data.order_no
+        },
+        headers: {
+          Authorization: `Bearer${userInfo.token}`
+        }
+      }).then(res => {
+        const { statusTxt } = res.data;
+        if (statusTxt === "支付完成") {
+          this.$confirm("订单支付成功", "提示", {
+            confirmButtonText: "确定",
+            showCancelButton: false,
+            type: "success"
+          });
+          return Promise.resolve(true);
+        }
+        return Promise.resolve(false);
+      });
+    }
+  },
+
+  destroyed() {
+    clearInterval(this.timer);
+  },
+
+  mounted() {
+    // 这个处理方法有缺陷，不能100%准确
+    // userInfo在页面加载完才赋值
+    setTimeout(v => {
+      const { id } = this.$route.query;
+      const {
+        user: { userInfo }
+      } = this.$store.state;
+
+      // 请求二维码
+      this.$axios({
+        url: `airorders/${id}`,
+        headers: {
+          Authorization: `Bearer${userInfo.token}`
+        }
+      }).then(res => {
+        // price用于展示
+        const { payInfo, price } = res.data;
+
+        // 生成二维码到canvas
+        const stage = document.querySelector("#qrcode-stage");
+        QRCode.toCanvas(stage, payInfo.code_url, {
+          width: 200
+        });
+        this.timer = setInterval(async () => {
+          const isResolve = await this.isPay(payInfo);
+          console.log(isResolve);
+          if (isResolve) {
+            clearInterval(this.timer);
+            return;
+          }
+        }, 3000);
+      });
+    }, 200);
+  }
+};
 </script>
 
 <style scoped lang="less">
