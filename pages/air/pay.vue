@@ -25,6 +25,7 @@
 <script>
 // 生成二维码的包
 import QRCode from "qrcode";
+
 export default {
   data() {
     return {
